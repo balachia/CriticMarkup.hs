@@ -54,14 +54,12 @@ matchTag (Tag start stop keep) = do
         tagStarts = "{~"
         stopChars' = stopChars tagStarts stop
         restTag = matchTag (Tag "" stop keep)
-        loneStopChar x = do
-            char x
+        loneStopChar x = innerParse (char x >> return [x])
+        innerTag tag = innerParse (matchTag tag)
+        innerParse x = do
+            inner <- keepFilter keep $ x
             rest <- restTag
-            keepFilter keep $ return (x:rest)
-        innerTag tag = do
-            inner <- matchTag tag
-            rest <- restTag
-            keepFilter keep $ return (inner ++ rest)
+            return (inner ++ rest)
 
 cmParse :: Parsec String () String
 cmParse = matchTag (Tag "" EOF Keep)
@@ -77,60 +75,39 @@ cmParse = matchTag (Tag "" EOF Keep)
  - structure:
  -      text -> tag + text -> recurse
  -}
-cmStart :: Maybe String -> Parsec String () String
-cmStart Nothing = do
-    pre <- many (noneOf "{")
-    -- we've hit the typical break
-    (inner, post) <- cmRest Nothing
-    return (concat [pre,inner,post])
-cmStart (Just end@(x:xs)) = do
-    pre <- many (noneOf $ x:"{")
-    -- we stopped because: we ended the tag, we matched the end of tag char, or the usual break
-    (try $ string end >> return pre) <|>
-        (try $ char x >> cmStart (Just end) >>= \post -> return (concat [pre,[x],post])) <|>
-        (cmRest (Just end) >>= \(inner,post) -> return (concat [pre,inner,post]))
-
--- the usual break
--- we've hit eof, or an open brace
--- check for valid eof
--- check for open tags
--- match open brace
-cmRest :: Maybe String -> Parsec String () (String,String)
-cmRest end = eofCheck <|> do
-    inner <- cmAdd' <|> (string "{")
-    post <- cmStart end
-    return (inner,post)
-    where
-        eofCheck = eof >> case end of
-            Nothing -> return ("","")
-            Just x -> unexpected ("end (no CM closing tag: " ++ x ++ ")")
-
-cmAdd' :: Parsec String () String
-cmAdd' = do
-    try $ string "{++"
-    cmStart (Just "++}")
-
-
-{-cmadd :: Parsec String () String-}
-{-cmadd = do-}
-    {-string "++"-}
-    {-pre <- -}
+{-cmStart :: Maybe String -> Parsec String () String-}
+{-cmStart Nothing = do-}
+    {-pre <- many (noneOf "{")-}
+    {--- we've hit the typical break-}
+    {-(inner, post) <- cmRest Nothing-}
+    {-return (concat [pre,inner,post])-}
+{-cmStart (Just end@(x:xs)) = do-}
+    {-pre <- many (noneOf $ x:"{")-}
+    {--- we stopped because: we ended the tag, we matched the end of tag char, or the usual break-}
+    {-(try $ string end >> return pre) <|>-}
+        {-(try $ char x >> cmStart (Just end) >>= \post -> return (concat [pre,[x],post])) <|>-}
+        {-(cmRest (Just end) >>= \(inner,post) -> return (concat [pre,inner,post]))-}
 
 runTests = sequence_ $ map (outstr) tests
     where
-        outstr x = putStr ("\"" ++ x ++ "\" :=>: ") >> (parseTest cmParse x)
+        outstr' x = putStr ("\"" ++ x ++ "\" :=>: ") >> (parseTest cmParse x)
+        outstr (x,y) = do
+            let res = parse cmParse "" x
+            case res of
+                Left err -> putStrLn ("Error :: \"" ++ x ++ "\" :=>: " ++ (show err))
+                Right res' -> if res' == y then putStr "" else putStrLn ("Misparse :: \"" ++ x ++ "\" :=>: \"" ++ res' ++ "\"")
 
 tests = [
-    "test",
-    "test {++foo++} test",
-    "test {--foo--} test",
-    "test {--{++foo++}bar--} test",
-    "test {++{--foo--}bar++} test",
-    "test {~~foo~>bar~~} test",
-    "test {~~foo{++baz++}~>bar~~} test",
-    "test {~~foo{--baz--}~>bar~~} test",
-    "test {++foo",
-    "test"
+    ("test","test"),
+    ("test {++foo++} test","test foo test"),
+    ("test {--foo--} test","test  test"),
+    ("test {--{++foo++}bar--} test","test  test"),
+    ("test {++{--foo--}bar++} test","test bar test"),
+    ("test {~~foo~>bar~~} test","test bar test"),
+    ("test {~~foo{++baz++}~>bar~~} test","test bar test"),
+    ("test {~~foo{--baz--}~>bar~~} test","test bar test"),
+    ("test {++foo",""),
+    ("test","test")
     ]
 
 {-tests = [-}
