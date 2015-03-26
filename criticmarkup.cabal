@@ -7,7 +7,7 @@ synopsis:            A simple CriticMarkup cleaner
 -- description:         
 -- license:             
 homepage:            https://github.com/balachia/CriticMarkup.hs
-license-file:        LICENSE
+license-file:        LICENSE.md
 author:              Tony Vashevko
 maintainer:          avashevko@gmail.com
 -- copyright:           
