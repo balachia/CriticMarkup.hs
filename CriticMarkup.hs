@@ -1,10 +1,18 @@
 module Main where
 
 import Text.Parsec
-import Data.Maybe (isJust, fromJust)
-import Debug.Trace
+import System.Environment
+{-import Data.Maybe (isJust, fromJust)-}
+{-import Debug.Trace-}
 
-main = putStrLn "Hello World!"
+main' = putStrLn "Hello World!"
+main = do
+    (infile:outfile:_) <- getArgs
+    contents <- readFile infile
+    let res = parse cmParse "" contents
+    case res of
+        Left err -> putStrLn $ show err
+        Right res' -> writeFile outfile res'
 
 -- should CM keep or drop the text between tags
 data Keep = Keep | Drop
