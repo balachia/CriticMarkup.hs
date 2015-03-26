@@ -6,6 +6,7 @@ version:             0.1.0.0
 synopsis:            A simple CriticMarkup cleaner
 -- description:         
 -- license:             
+homepage:            https://github.com/balachia/CriticMarkup.hs
 license-file:        LICENSE
 author:              Tony Vashevko
 maintainer:          avashevko@gmail.com
