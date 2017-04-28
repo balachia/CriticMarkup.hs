@@ -1,0 +1,10 @@
+Usage:
+    criticmarkuphs [-h] [-i INFILE] [-o OUTFILE]
+    criticmarkuphs [-h] INFILE OUTFILE
+
+Options:
+    -h, --help                      show this help
+    -i INFILE, --infile INFILE      input file
+    -o OUTFILE, --outfile OUTFILE   output file
+    INFILE                          input file (INFILE OUTFILE is deprecated notation)
+    OUTFILE                         output file (INFILE OUTFILE is deprecated notation)

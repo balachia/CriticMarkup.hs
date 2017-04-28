@@ -1,23 +1,63 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module Main where
 
 import Text.Parsec
-import System.Environment
+import Control.Monad (when)
+import Data.Maybe (fromJust, listToMaybe, catMaybes)
+import System.Environment (getArgs)
+import System.Console.Docopt
+import System.IO (stderr, hPutStrLn)
+import System.IO.Unsafe (unsafePerformIO)
 {-import Data.Maybe (isJust, fromJust)-}
 {-import Debug.Trace-}
 
-main' = putStrLn "Hello World!"
-main = do
+patterns :: Docopt
+patterns = [docoptFile|USAGE|]
+
+main'' = putStrLn "Hello World!"
+main' = do
     (infile:outfile:_) <- getArgs
     contents <- readFile infile
     let res = parse cmParse "" contents
     case res of
         Left err -> putStrLn $ show err
         Right res' -> writeFile outfile res'
+main = do
+    args <- parseArgsOrExit patterns =<< getArgs
+
+    when (isPresent args (longOption "help")) $ do
+        exitWithUsage patterns
+
+    when ((isPresent args (argument "INFILE")) || (isPresent args (argument "OUTFILE"))) $ do
+        hPutStrLn stderr deprecationWarning
+
+    contents <- input args
+    case (parse cmParse "" contents) of
+        Left err -> putStrLn $ show err
+        Right out -> output args out
+    where
+        deprecationWarning = "`criticmarkuphs INFILE OUTFILE` is deprecated\nSee `criticmarkuphs -h`"
+        maybeFile args lo ar = listToMaybe $ catMaybes [getArg args (longOption lo), getArg args (argument ar)]
+        input args = case (maybeFile args "infile" "INFILE") of
+            Just file -> readFile file
+            Nothing -> getContents
+        output args out = case (maybeFile args "outfile" "OUTFILE") of
+            Just file -> writeFile file out
+            Nothing -> putStr out
+    
 
 -- should CM keep or drop the text between tags
 data Keep = Keep | Drop
     deriving (Show)
 
+-- 3 types of tages
+-- EOF tag
+-- "terminator" tag, containing string indicating end of tag
+-- regular tag, containing:
+--  . open tag string
+--  . transition tag ending current tag
+--  . keep/drop text in tag
 data CMTag = EOF | Close String | Tag String CMTag Keep
     deriving (Show)
 

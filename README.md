@@ -2,13 +2,16 @@
 
 A Parsec-based CriticMarkup cleaner. Run
 
-`criticmarkuphs in.md out.md`
+```
+criticmarkuphs -i in.md -o out.md
+cat in.md | criticmarkuphs > out.md
+```
 
 to clean all the gunk out of `in.md` and produce a svelte `out.md`.
 
 ## Install
 
-I'm 80% sure the following will work. Download this repo to some folder. Then run:
+I'm 95% sure the following will work. Download this repo to some folder. Then run:
 
 ```sh
 cabal configure
@@ -16,7 +19,8 @@ cabal build
 cabal install
 ```
 
-That should produce an executable that you should then drop somewhere in your $PATH.
+That should produce an executable that you should then drop somewhere in your
+`$PATH`.
 
 ## TODO
 

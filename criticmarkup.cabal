@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                criticmarkup
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            A simple CriticMarkup cleaner
 -- description:         
 -- license:             
@@ -20,6 +20,6 @@ executable criticmarkuphs
   main-is:             CriticMarkup.hs
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base == 4.*, parsec == 3.*
+  build-depends:       base >= 4.0, parsec >= 3.0, docopt >= 0.6
   -- hs-source-dirs:      
   default-language:    Haskell2010
